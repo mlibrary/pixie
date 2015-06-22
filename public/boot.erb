@@ -14,7 +14,7 @@ if @subnet[:gateway]
   debian_install_kernel_flags.push(%Q(netcfg/get_hostname=#{@you.hostname}))
 end
 debian_install_kernel_flags.push(%Q(netcfg/get_domain=#{@you.domain}))
-debian_install_kernel_flags.push(%Q(preseed/url=http://#{@me.fqdn}/conf/preseed.cfg))
+debian_install_kernel_flags.push(%Q(preseed/url=http://#{@me.fqdn}:#{@port}/preseed.cfg))
 
 debian_install_kernel_flags = debian_install_kernel_flags.join(' ')
 %>
@@ -58,7 +58,7 @@ echo Booting failed, dropping to shell
 goto shell
 
 :reload
-chain http://<%=@me.fqdn%>/boot?mac=${net0/mac}
+chain http://<%=@me.fqdn%>:<%=@port%>/boot?mac=${net0/mac}
 
 :reboot
 reboot
@@ -74,28 +74,28 @@ goto start
  
 :debian
 echo Booting Debian Installer from http
-kernel media/di/netboot/linux vga=788 <%=debian_install_kernel_flags%>
-initrd media/di/netboot/initrd.gz
+kernel di/linux vga=788 <%=debian_install_kernel_flags%>
+initrd di/initrd.gz
 boot || goto failed
 goto start
 
 :debianserial
 echo Booting Debian Installer from http
-kernel media/di/netboot/linux vga=788 console=tty0 console=ttyS0,115200n8 <%=debian_install_kernel_flags%>
-initrd media/di/netboot/initrd.gz
+kernel di/linux vga=788 console=tty0 console=ttyS0,115200n8 <%=debian_install_kernel_flags%>
+initrd di/initrd.gz
 boot || goto failed
 goto start
 
 :debianserial-debug
 echo Booting Debian Installer from http
-kernel media/di/netboot/linux vga=788 DEBCONF_DEBUG=5 priority=medium console=tty0 console=ttyS0,115200n8 <%=debian_install_kernel_flags%>
-initrd media/di/netboot/initrd.gz
+kernel di/linux vga=788 DEBCONF_DEBUG=5 priority=medium console=tty0 console=ttyS0,115200n8 <%=debian_install_kernel_flags%>
+initrd di/initrd.gz
 boot || goto failed
 goto start
 
 :util
 echo Booting Debian Util Image from http
-kernel media/util/tftpboot/live/vmlinuz boot=live config fetch=http://<%=@me.ip%>/media/util/debian-live/live/filesystem.squashfs console=tty0 console=ttyS0,115200n8
+kernel media/util/tftpboot/live/vmlinuz boot=live config fetch=http://<%=@me.ip%><%=@port%>/media/util/debian-live/live/filesystem.squashfs console=tty0 console=ttyS0,115200n8
 initrd media/util/tftpboot/live/initrd.img
 boot || goto failed
 goto start

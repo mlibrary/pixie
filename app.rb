@@ -30,6 +30,7 @@ class PixieApp < Sinatra::Base
     @subnet = @penv.subnet
     @pixiemaster = @penv.pixiemaster
     @puppetmaster = @penv.puppetmaster
+    @port = request.port
 
     if request.params.empty?
       @param_str = ''
