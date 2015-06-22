@@ -1,0 +1,22 @@
+!!!
+%html
+  %head
+    %title Pixie
+  %body
+    %h1 Welcome to Pixie
+    %p
+      #{fortune}
+    %h2 Menu
+    %ul
+      - @menu.each do |path|
+        %li
+          %a{href: path+@param_str} #{path}
+    %div
+      %h2 Template Overrides
+      %form{action:"/", method:"get"}
+        %label{for:"S"} Server (installation target)
+        %input{type:"text", name:"S", value:@you_override}
+        %br
+        %label{for:"P"} Pixie (installation source)
+        %input{type:"text", name:"P", value:@me_override}
+        %input{type:"submit", value:"Go"}

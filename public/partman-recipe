@@ -1,0 +1,52 @@
+partman-auto/text/pixie ::
+2048 100 2048 ext4
+    $primary{ }
+    $bootable{ }
+    method{ format }
+    format{ }
+    use_filesystem{ }
+    filesystem{ ext4 }
+    label{ root }
+    mountpoint{ / } .
+2048 100 2048 linux-swap
+    $primary{ }
+    method{ swap }
+    format{ } .
+4096 100 4096 ext4
+    method{ format }
+    format{ }
+    use_filesystem{ }
+    filesystem{ ext4 }
+    label{ tmp }
+    mountpoint{ /tmp } .
+
+4096 100 4096 ext4
+    method{ lvm }
+    $lvmok{ }
+    format{ }
+    use_filesystem{ }
+    filesystem{ ext4 }
+    lvname { var }
+    mountpoint{ /var } .
+2048 100 2048 ext4
+    method{ lvm }
+    $lvmok{ }
+    format{ }
+    use_filesystem{ }
+    filesystem{ ext4 }
+    lv_name{ l }
+    mountpoint{ /l } .
+4096 100 4096 ext4
+    method{ lvm }
+    $lvmok{ }
+    format{ }
+    use_filesystem{ }
+    filesystem{ ext4 }
+    lv_name{ usr }
+    mountpoint{ /usr } .
+1 1000000000 1000000000 ext4
+    method{ lvm }
+    $lvmok{ }
+    format{ }
+    filesystem{ ext4 }
+    lv_name{ blank } .

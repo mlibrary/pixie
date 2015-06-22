@@ -1,0 +1,12 @@
+---
+0.0.0.0/0:
+  subnet_comment: Default
+  nameservers:
+    - 8.8.8.8
+    - 8.8.4.4
+  debian_mirror: debian.cse.msu.edu
+  puppetmaster: puppet.mydomain.net
+  pixiemaster: pixie.mydomain.net
+
+172.1.1.0/25:
+  subnet_comment: My Subnet

@@ -1,0 +1,5 @@
+<%# Embedded iPXE boot stub. Used to generate iPXE binaries.%>
+#!ipxe
+
+dhcp
+chain http://<%=@pixiemaster.fqdn%>/boot

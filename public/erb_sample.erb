@@ -1,0 +1,17 @@
+This is a sample erb template in /public. Put erb templates of all your server
+config files in /public, along with static files. Pixie generates many
+variables you need to boot and install your OS images and makes them available
+to your template. See some samples below:
+
+IP: <%=@you.ip%>
+<%if @subnet[:gateway]%>
+Subnet: <%=@subnet[:subnet]%>
+Gateway: <%=@subnet[:gateway]%>
+Nameserver: <%=@subnet[:nameserver_string]%>
+<%else%>
+Your subnet isn't in my config. Try adding it to config/subnets.yml.
+<%end%>
+
+For an exhaustive listing, see /env. Also try overriding the target server with
+the form on the front page to see what variables you'll get for an actual
+server (rather than your desktop).

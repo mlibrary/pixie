@@ -1,0 +1,101 @@
+<%
+#menu_default = 'reload'
+#menu_default = 'debianserial'
+menu_default = 'debian'
+debian_install_kernel_flags = %w{language=en country=US locale=en_US.UTF-8 keymap=us netcfg/disable_dhcp=true}
+
+if @subnet[:gateway]
+  debian_install_kernel_flags.push(%Q(netcfg/get_nameservers="#{@subnet[:nameserver_string]}"))
+  debian_install_kernel_flags.push(%q(netcfg/choose_interface=eth0))
+#  debian_install_kernel_flags.push(%Q(netcfg/get_ipaddress=#{@you.ip}/#{@subnet[:mask_cidr]}))
+  debian_install_kernel_flags.push(%Q(netcfg/get_ipaddress=#{@you.ip}))
+  debian_install_kernel_flags.push(%Q(netcfg/get_netmask=#{@subnet[:netmask]}))
+  debian_install_kernel_flags.push(%Q(netcfg/get_gateway=#{@subnet[:gateway]}))
+  debian_install_kernel_flags.push(%Q(netcfg/get_hostname=#{@you.hostname}))
+end
+debian_install_kernel_flags.push(%Q(netcfg/get_domain=#{@you.domain}))
+debian_install_kernel_flags.push(%Q(preseed/url=http://#{@me.fqdn}/conf/preseed.cfg))
+
+debian_install_kernel_flags = debian_install_kernel_flags.join(' ')
+%>
+#!ipxe
+
+# pxe menu control variables
+set menu-timeout 30000
+set menu-default <%=menu_default%>
+ 
+###################### MAIN MENU ####################################
+
+:start
+menu iPXE - <%=@you.fqdn%> - <%=@you.ip%>
+item --gap --             ------------------------- Operating systems ------------------------------
+item --key u util         Boot Debian Live Utility Image                                     [u]
+item --key d debian       Boot Debian Installer                                              [d]
+item --key t debianserial Boot Debian Installer with Serial Console                          [t]
+item debianserial-debug   Boot Debian Installer with Serial Console + Installer Debug
+item --gap --             ------------------------- Advanced options -------------------------------
+item --key c config       Configure iPXE settings                                            [c]
+item --key s shell        Drop to iPXE shell                                                 [s]
+item --key r reload       Reload iPXE menu                                                   [r]
+item --key R reboot       Reboot computer                                                    [R]
+item --gap
+item --key x exit         Exit iPXE and continue BIOS boot                                   [x]
+choose --timeout ${menu-timeout} --default ${menu-default} selected || goto cancel
+set menu-timeout 0
+goto ${selected}
+
+:cancel
+echo You cancelled the menu, dropping you to a shell
+ 
+:shell
+echo Type exit to get the back to the menu
+shell
+set menu-timeout 0
+goto start
+
+:failed
+echo Booting failed, dropping to shell
+goto shell
+
+:reload
+chain http://<%=@me.fqdn%>/boot?mac=${net0/mac}
+
+:reboot
+reboot
+
+:exit
+exit
+
+:config
+config
+goto start
+ 
+############ MAIN MENU ITEMS ############
+ 
+:debian
+echo Booting Debian Installer from http
+kernel media/di/netboot/linux vga=788 <%=debian_install_kernel_flags%>
+initrd media/di/netboot/initrd.gz
+boot || goto failed
+goto start
+
+:debianserial
+echo Booting Debian Installer from http
+kernel media/di/netboot/linux vga=788 console=tty0 console=ttyS0,115200n8 <%=debian_install_kernel_flags%>
+initrd media/di/netboot/initrd.gz
+boot || goto failed
+goto start
+
+:debianserial-debug
+echo Booting Debian Installer from http
+kernel media/di/netboot/linux vga=788 DEBCONF_DEBUG=5 priority=medium console=tty0 console=ttyS0,115200n8 <%=debian_install_kernel_flags%>
+initrd media/di/netboot/initrd.gz
+boot || goto failed
+goto start
+
+:util
+echo Booting Debian Util Image from http
+kernel media/util/tftpboot/live/vmlinuz boot=live config fetch=http://<%=@me.ip%>/media/util/debian-live/live/filesystem.squashfs console=tty0 console=ttyS0,115200n8
+initrd media/util/tftpboot/live/initrd.img
+boot || goto failed
+goto start
