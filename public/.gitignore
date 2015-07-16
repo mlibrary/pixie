@@ -1,3 +1,6 @@
 preseed.cfg
 preseed.cfg.erb
 di
+authorized_keys
+rules.v4
+rules.v6
