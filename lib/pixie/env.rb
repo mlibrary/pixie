@@ -4,7 +4,7 @@ class Pixie::Env
   def initialize(you,me)
     @you = Pixie::Server.new(you)
     @me = Pixie::Server.new(me)
-    @subnet = Pixie::Subnets.search(@me.ip)
+    @subnet = Pixie::Subnets.search(@you.ip)
 
     pixiemaster = @subnet['pixiemaster']
     pupetmaster = @subnet['puppetmaster']

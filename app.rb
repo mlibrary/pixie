@@ -36,7 +36,10 @@ class PixieApp < Sinatra::Base
       @param_str = ''
     else
       @param_str = '?'+request.params.map{|k,v| "#{k}=#{v}"}.join("&")
-    end    
+    end
+
+    # provide consistant interface for offline and online template running by moving params somewhere universal
+    @extra = request.params
   end
 
   helpers do

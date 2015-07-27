@@ -8,6 +8,7 @@ IP: <%=@you.ip%>
 Subnet: <%=@subnet[:subnet]%>
 Gateway: <%=@subnet[:gateway]%>
 Nameserver: <%=@subnet[:nameserver_string]%>
+Netmask: <%=@subnet[:mask]%>
 <%else%>
 Your subnet isn't in my config. Try adding it to config/subnets.yml.
 <%end%>

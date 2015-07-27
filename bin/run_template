@@ -1,0 +1,32 @@
+#!/bin/bash
+bundle exec ruby $0 $@
+exit 0
+
+#!ruby
+require 'optparse'
+
+you = nil
+me = nil
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: #{__FILE__} [-s server] [-p pixie] template"
+
+  opts.on("-s HOSTNAME", "--server=HOSTNAME", "--you=HOSTNAME", "Hostname of targeted installation server") do |host|
+    you = host
+  end
+
+  opts.on("-p HOSTNAME", "--pixie=HOSTNAME", "--me=HOSTNAME", "Hostname of Pixie server") do |host|
+    me = host
+  end
+
+  opts.on("-h", "--help", "Prints this help") do
+    puts opts
+    exit
+  end
+end.parse!
+
+require_relative '../lib/pixie'
+require_relative '../lib/offline'
+
+te = TemplateEngine.new(ARGV[0],you,me)
+te.run

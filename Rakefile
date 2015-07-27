@@ -1,3 +1,6 @@
+require_relative 'lib/pixie'
+require_relative 'lib/offline'
+
 # Use the right tar os OS X
 `which gtar`
 TAR = $?.exitstatus.zero? ? 'gtar' : 'tar'
@@ -26,13 +29,16 @@ namespace :mk do
   end
 
   task :ipxe do
+    # Build only supported on Linux hosts
+    `uname`.chomp.eql?('Linux') or abort 'mk:ipxe task requires platform Linux'
+
     # make working dir
     system 'mkdir os_image_build' unless Dir.exists?('os_image_build')
     system 'mkdir os_image_build/ipxe' unless Dir.exists?('os_image_build/ipxe')
 
     # write boot script
-    system 'bundle exec ruby bin/run_template.rb public/boot.ipxe.erb > os_image_build/ipxe/boot.ipxe'
-    
+    TemplateEngine.new('public/boot.ipxe.erb').write('os_image_build/ipxe/boot.ipxe')
+
     # fetch and build sources
     Dir.chdir('os_image_build/ipxe') do
       if Dir.exists?('ipxe')
