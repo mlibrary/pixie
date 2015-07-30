@@ -28,3 +28,10 @@ class TemplateEngine
     File.open(filename, 'w') { |file| file.write(self.render) }
   end
 end
+
+module Util
+  def self.mkdir(d)
+    Dir.mkdir(d) unless Dir.exists?(d)
+    Dir.new d
+  end
+end

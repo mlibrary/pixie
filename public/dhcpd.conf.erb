@@ -1,0 +1,15 @@
+# GENERATED FILE. DO NOT EDIT!
+# Rebuild from <%=Dir.getwd%> with: bundle exec rake conf
+
+ddns-update-style none;
+
+default-lease-time 300;
+max-lease-time 600;
+
+<% Pixie::Subnets.get.each_value do |sn| %>
+subnet <%=sn[:base_addr]%> netmask <%=sn[:mask]%> {
+  option subnet-mask <%=sn[:mask]%>;
+  option broadcast-address <%=sn[:broadcast]%>;
+  option routers <%=sn[:gateway]%>;
+}
+<% end %>

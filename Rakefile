@@ -7,11 +7,13 @@ TAR = $?.exitstatus.zero? ? 'gtar' : 'tar'
 
 # Select Debian dist
 DIST = 'jessie'
+PUBLIC = File.absolute_path(File.join(Pathname.new(__FILE__).dirname,'public'))
 
 task :run => ["run:puma"]
 task :ipxe => ["mk:ipxe","inject:ipxe"]
 task :debian_installer => ["di"]
 task :di => ["mk:di","inject:di"]
+task :conf => ["mk:conf","inject:conf"]
 
 namespace :run do
   task :shotgun do
@@ -25,7 +27,7 @@ end
 
 namespace :mk do
   task :clean do
-    system 'rm -rf os_image_build/*'
+    system 'rm -rf build/*'
   end
 
   task :ipxe do
@@ -33,14 +35,12 @@ namespace :mk do
     `uname`.chomp.eql?('Linux') or abort 'mk:ipxe task requires platform Linux'
 
     # make working dir
-    system 'mkdir os_image_build' unless Dir.exists?('os_image_build')
-    system 'mkdir os_image_build/ipxe' unless Dir.exists?('os_image_build/ipxe')
+    Util.mkdir 'build'
+    Util.mkdir 'build/ipxe'
 
-    # write boot script
-    TemplateEngine.new('public/boot.ipxe.erb').write('os_image_build/ipxe/boot.ipxe')
-
+    t = Dir.getwd.to_s
     # fetch and build sources
-    Dir.chdir('os_image_build/ipxe') do
+    Dir.chdir('build/ipxe') do
       if Dir.exists?('ipxe')
         system 'cd ipxe; make clean; git pull'
       else
@@ -48,8 +48,12 @@ namespace :mk do
       end
 
       Dir.chdir('ipxe/src') do
-        system 'make bin/undionly.kpxe EMBED=../../boot.ipxe'
-        system 'cp bin/undionly.kpxe ../../boot.kpxe'
+        # write boot script
+        Pixie::Subnets.get_each_value_of('pixiemaster').each { |h|
+          TemplateEngine.new(File.join(PUBLIC,'boot.ipxe.erb'),h).write('../../boot.ipxe')
+          system 'make bin/undionly.kpxe EMBED=../../boot.ipxe'
+          system "cp bin/undionly.kpxe ../../#{h.hostname}.kpxe"
+        }
         system 'make clean'
       end
     end
@@ -58,11 +62,11 @@ namespace :mk do
   task :di => ['mk:debian_installer']
   task :debian_installer do
     # make clean working dir
-    system 'mkdir os_image_build' unless Dir.exists?('os_image_build')
-    system 'mkdir os_image_build/di' unless Dir.exists?('os_image_build/di')
+    Util.mkdir 'build'
+    Util.mkdir 'build/di'
     system 'rm -rf firmware firmware.cpio.gz netboot'
 
-    Dir.chdir('os_image_build/di') do
+    Dir.chdir('build/di') do
       # fetch sources
       fetch_tarball "http://cdimage.debian.org/cdimage/unofficial/non-free/firmware/#{DIST}/current/firmware.tar.gz", "--wildcards *bnx* *qlogic*"
       fetch_tarball "http://ftp.us.debian.org/debian/dists/#{DIST}/main/installer-amd64/current/images/netboot/netboot.tar.gz", "--wildcards *linux *initrd.gz *version.info"
@@ -77,19 +81,44 @@ namespace :mk do
 
     end
   end
+
+  # generate config files
+  task :conf do
+    Util.mkdir 'build'
+    Util.mkdir 'build/conf'
+
+    # dhcp conf
+    TemplateEngine.new(File.join(PUBLIC,'dhcpd.conf.erb'),h).write('build/conf/dhcpd.conf')
+  end
 end
 
 namespace :inject do
-  # install ipxe boot image to tftp home
+  # copy ipxe boot image to tftp home
   task :ipxe do
-    system 'mkdir -p tftp'
-    system 'cp os_image_build/ipxe/boot.kpxe tftp/'
+    tftp_home = nil
+    if Dir.exists?('/srv/tftp/')
+      tftp_home = '/srv/tftp/'
+    elsif Dir.exists('/private/tftpboot')
+      tftp_home = '/srv/tftp/'
+    end
+
+    if tftp_home
+      system("cp build/ipxe/*.kpxe #{tftp_home}")
+    else
+      abort 'No TFTP home found'
+    end
   end
-  
+
+  # copy debian pxe install image to public
   task :di => ['inject:debian_installer']
   task :debian_installer do
     system 'rm -rf public/di'
-    system 'cp -r os_image_build/di/netboot public/di'
+    system 'cp -r build/di/netboot public/di'
+  end
+
+  # copy misc config files to proper locations
+  task :conf do
+    system 'cp build/conf/dhcpd.conf /etc/dhcp/dhcpd.conf'
   end
 end
 

@@ -2,6 +2,7 @@ class Pixie::Server
   attr_reader :fqdn, :hostname, :domain
 
   def initialize(id)
+    id = id.to_s if id.instance_of? Pixie::Server
     ip = Resolv.getaddress id
     begin
       # id can be ip or (resolvable) domain name
@@ -26,7 +27,11 @@ class Pixie::Server
     @ip.to_s
   end
 
-  def to_json
-    return self.to_hash.to_json
+  def to_json(state=nil)
+    return self.to_hash.to_json(state)
+  end
+
+  def to_s
+    return @fqdn
   end
 end

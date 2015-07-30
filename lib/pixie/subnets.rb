@@ -20,6 +20,8 @@ module Pixie::Subnets
     elsif(@@subnets[subnet]['nameserver'])
       @@subnets[subnet][:nameserver_string] = @@subnets[subnet]['nameserver']
     end
+    @@subnets[subnet]['pixiemaster'] = Pixie::Server.new(@@subnets[subnet]['pixiemaster'])
+    @@subnets[subnet]['puppetmaster'] = Pixie::Server.new(@@subnets[subnet]['puppetmaster'])
   end
 
   def self.get
